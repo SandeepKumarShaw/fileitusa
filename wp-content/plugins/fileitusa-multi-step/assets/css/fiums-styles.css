@@ -1,0 +1,8 @@
+.updetails {
+    /* text-align: center; */
+    color: green;
+    font-size: 18px;
+}
+p.form-row.form-row-wide.create-account {
+    display: none;
+}
