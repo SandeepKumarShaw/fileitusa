@@ -126,7 +126,7 @@ class FileItUsa_Multi_Step{
         ///$fields['account']['account_password']['placeholder'] = '';
        // return $fields;
 
-             $fields['billing']['account_password'] = array(
+             $fields['account']['account_password'] = array(
                   'label'     => __('Password', 'woocommerce'),
                   'placeholder'   => _x('Password', 'placeholder', 'woocommerce'),
                   'required'  => false,
@@ -156,10 +156,13 @@ class FileItUsa_Multi_Step{
           //$_POST['account_password']
           
           // random password with 12 chars
-          $random_password = wp_generate_password($order->account_password);
+          $random_password = wp_generate_password();
           
           // create new user with email as username & newly created pw
-          $user_id = wp_create_user( $order_email, $password, $order_email );
+          $user_id = wp_create_user( $order_email, $random_password, $order_email );
+
+          $wc = new WC_Emails();
+          $wc->customer_new_account($user_id, $random_password);
           
           //WC guest customer identification
           update_user_meta( $user_id, 'guest', 'yes' );
@@ -176,6 +179,9 @@ class FileItUsa_Multi_Step{
           update_user_meta( $user_id, 'billing_phone', $order->billing_phone );
           update_user_meta( $user_id, 'billing_postcode', $order->billing_postcode );
           update_user_meta( $user_id, 'billing_state', $order->billing_state );
+
+          // Update to "customer" user role
+        update_user_meta( $user_id, 'wp_capabilities', array('customer' => true) );
         
           // link past orders to this newly created customer
           wc_update_new_customer_past_orders( $user_id );

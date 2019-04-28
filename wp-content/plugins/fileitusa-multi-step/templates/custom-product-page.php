@@ -117,9 +117,9 @@
 		?> 
 	</div>
 </div>
-<script src="http://localhost/cnp610-fileitusa/wp-content/plugins/fileitusa-multi-step/assets/js/jquery.steps.js?ver=5.1.1">
+<script src="<?php echo site_url(); ?>/wp-content/plugins/fileitusa-multi-step/assets/js/jquery.steps.js?ver=5.1.1">
 </script>
-<script src="http://localhost/cnp610-fileitusa/wp-content/plugins/fileitusa-multi-step/assets/js/jquery.validate.min.js?ver=5.1.1">
+<script src="<?php echo site_url(); ?>/wp-content/plugins/fileitusa-multi-step/assets/js/jquery.validate.min.js?ver=5.1.1">
 </script>
-<script src="http://localhost/cnp610-fileitusa/wp-content/plugins/fileitusa-multi-step/assets/js/custom.js?ver=5.1.1">
+<script src="<?php echo site_url(); ?>/wp-content/plugins/fileitusa-multi-step/assets/js/custom.js?ver=5.1.1">
 </script>
