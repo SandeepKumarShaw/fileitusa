@@ -1,0 +1,24 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+ .pagination-links .page-numbers.current{
+ 	background-color: #337ab7;
+ 	color: #fff;
+ }
+ ul.multiselect-container {
+      width: 100% !important;
+    }
+
+.multiselect,.multiselect-native-select .btn-group {width:100% !important;}
+span.multiselect-native-select {
+	width: 100%;
+	float: left;
+}
+.modal {
+  overflow-y:auto !important;
+}
+#addon_desc_ifr{
+	height: 200px!important;
+}

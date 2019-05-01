@@ -26,6 +26,12 @@ jQuery(document).ready(function($){
           },
           billing_email:{
                required:true
+          },
+          account_username:{
+               required:true
+          },
+          account_password:{
+               required:true
           }
       },      
     messages: {
@@ -36,7 +42,9 @@ jQuery(document).ready(function($){
       billing_city: "Billing Town / City is a required field.",
       billing_postcode: "Billing Postcode / ZIP is a required field.",
       billing_phone: "Billing Phone is a required field.",
-      billing_email: "Billing Email address is a required field."
+      billing_email: "Billing Email address is a required field.",
+      account_username: "Account Username is a required field.",
+      account_password: "Account Password is a required field."
       
 
     }
@@ -57,7 +65,23 @@ jQuery(document).ready(function($){
       },
       onFinished: function (event, currentIndex)
       {
-          alert("Submitted!");
+          //alert("Submitted!");
       }
   });
+
+  $("#clonetrigger").click(function(){
+    var yourclass=".clonable"; //The class you have used in your form
+    var clonecount = $(yourclass).length; //how many clones do we already have?
+    var newid = Number(clonecount) + 1; //Id of the new clone
+
+    $(yourclass+":first").fieldclone({//Clone the original elelement
+        newid_: newid, //Id of the new clone, (you can pass your own if you want)
+        target_: $("#formbuttons"), //where do we insert the clone? (target element)
+        insert_: "before", //where do we insert the clone? (after/before/append/prepend...)
+        limit_: 4 //Maximum Number of Clones
+    });
+    return false;
+});
+
+
 }); 

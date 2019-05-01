@@ -9,8 +9,8 @@
 		$loop = new WP_Query( $args );
 		if ( $loop->have_posts() ) {
 			while ( $loop->have_posts() ) : $loop->the_post();global $product;?>
-				<div class="col-sm-3 <?php echo 'rating_'.$loop->post->ID; ?>" id="<?php echo 'updetails_'.$loop->post->ID; ?>" style="background-color:lavenderblush;">
-					<form onClick="checkAll('<?php echo $loop->post->ID; ?>')"  class="cart" action="<?php echo site_url(). '/package-selection-payment/';?>" method="post" enctype="multipart/form-data">
+				<div class="col-sm-3 <?php echo 'rating_'.$loop->post->ID; ?>" id="<?php echo 'updetails_'.$loop->post->ID; ?>">
+					<form onClick="checkAll('<?php echo $loop->post->ID; ?>')"  class="cart" action="<?php echo site_url(). '/checkout/';?>" method="post" enctype="multipart/form-data" style="background-color:lavenderblush;">
 
 						<figure class="figure">
 							<a href="<?php echo get_permalink( $loop->post->ID ) ?>">
@@ -121,5 +121,6 @@
 </script>
 <script src="<?php echo site_url(); ?>/wp-content/plugins/fileitusa-multi-step/assets/js/jquery.validate.min.js?ver=5.1.1">
 </script>
+
 <script src="<?php echo site_url(); ?>/wp-content/plugins/fileitusa-multi-step/assets/js/custom.js?ver=5.1.1">
 </script>

@@ -34,10 +34,6 @@ class FileItUsa_Multi_Step{
           add_filter('woocommerce_get_item_data', array($this,'display_custom_item_data'), 10, 2);
           // Save / Display custom field value as custom order item meta data
           add_action( 'woocommerce_checkout_create_order_line_item', array($this,'misha_add_order_item_meta'), 10, 4 ); 
-          // add password field to billing details
-          add_filter( 'woocommerce_checkout_fields' , array($this,'custom_wc_checkout_fields') );
-          //add this newly created function to the thank you page
-          add_action( 'woocommerce_thankyou', array($this, 'wc_register_guests'), 10, 1 );
           //service and product addon display shortcode
           add_shortcode('WP_FIUPS_shortcode', array($this, 'FIUPS_shortcode'));
           //Multistep for payment shortcode
@@ -46,11 +42,27 @@ class FileItUsa_Multi_Step{
           register_activation_hook(__FILE__, array($this, 'add_custom_page_services'));
           //Remove Dynamic page in backend
           register_deactivation_hook(__FILE__, array($this, 'remove_custom_page_services'));
+          // Replace the checkout template
+          add_filter( 'woocommerce_locate_template', array( $this, 'woocommerce_locate_template' ), 10, 3 );
+
+          //add custom fields to thecheckout form
+          add_action( 'woocommerce_checkout_after_customer_details' , array($this, 'FIUPS_extra_checkout_fields' ));
+          // Save the Data of Custom Checkout WooCommerce Fields
+          add_action( 'woocommerce_checkout_update_order_meta' , array($this, 'FIUPS_save_extra_checkout_fields' ), 10, 2);
+          //Display WooCommerce Admin Custom Order Fields
+          add_action( 'woocommerce_admin_order_data_after_shipping_address', array($this, 'FIUPS_display_order_data_in_admin'), 10, 1);
+          add_action( 'woocommerce_process_shop_order_meta', array($this, 'FIUPS_save_extra_details'), 45, 2 );
+
+
+
+
+
+
       }  
       public function adjust_hooks(){
           // Remove login messages
-          remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_login_form', 10 );
-          remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+          //remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_login_form', 10 );
+          //remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
 
           // Split the `Order` and the `Payment` tabs
           remove_action( 'woocommerce_checkout_order_review', 'woocommerce_order_review', 10 );
@@ -68,6 +80,15 @@ class FileItUsa_Multi_Step{
           remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
 
 
+      }
+     /**
+     * Load the form-checkout.php template from this plugin
+     */
+      public function woocommerce_locate_template( $template, $template_name, $template_path ){
+          if( 'checkout/form-checkout.php' != $template_name )
+            return $template;
+          $template = plugin_dir_path( __FILE__ ) . 'inc/form-checkout.php';
+          return $template;
       }
       public function assets(){
           wp_enqueue_style( 'fiums-bootstrap-style', FIUMS_PLUGIN_URL . 'assets/bootstrap/css/bootstrap.min.css' );
@@ -122,79 +143,54 @@ class FileItUsa_Multi_Step{
             $item->add_meta_data( $sr_addon_names->name, '+ $' .$sr_addon_names->id );
           }       
       }
-      public function custom_wc_checkout_fields( $fields ) {
-        ///$fields['account']['account_password']['placeholder'] = '';
-       // return $fields;
 
-             $fields['account']['account_password'] = array(
-                  'label'     => __('Password', 'woocommerce'),
-                  'placeholder'   => _x('Password', 'placeholder', 'woocommerce'),
-                  'required'  => false,
-                  'class'     => array('form-row-wide'),
-                  'clear'     => true
-             );
-             return $fields;
-      }
-      public function wc_register_guests( $order_id ) {
-        // get all the order data
-        $order = new WC_Order($order_id);
-
-/*        echo '<pre>';
-        print_r($order);
-        echo '</pre>';*/
-        
-        //get the user email from the order
-        $order_email = $order->billing_email;
-          
-        // check if there are any users with the billing email as user or email
-        $email = email_exists( $order_email );  
-        $user = username_exists( $order_email );
-        
-        // if the UID is null, then it's a guest checkout
-        if( $user == false && $email == false ){
-
-          //$_POST['account_password']
-          
-          // random password with 12 chars
-          $random_password = wp_generate_password();
-          
-          // create new user with email as username & newly created pw
-          $user_id = wp_create_user( $order_email, $random_password, $order_email );
-
-          $wc = new WC_Emails();
-          $wc->customer_new_account($user_id, $random_password);
-          
-          //WC guest customer identification
-          update_user_meta( $user_id, 'guest', 'yes' );
-       
-          //user's billing data
-          update_user_meta( $user_id, 'billing_address_1', $order->billing_address_1 );
-          update_user_meta( $user_id, 'billing_address_2', $order->billing_address_2 );
-          update_user_meta( $user_id, 'billing_city', $order->billing_city );
-          update_user_meta( $user_id, 'billing_company', $order->billing_company );
-          update_user_meta( $user_id, 'billing_country', $order->billing_country );
-          update_user_meta( $user_id, 'billing_email', $order->billing_email );
-          update_user_meta( $user_id, 'billing_first_name', $order->billing_first_name );
-          update_user_meta( $user_id, 'billing_last_name', $order->billing_last_name );
-          update_user_meta( $user_id, 'billing_phone', $order->billing_phone );
-          update_user_meta( $user_id, 'billing_postcode', $order->billing_postcode );
-          update_user_meta( $user_id, 'billing_state', $order->billing_state );
-
-          // Update to "customer" user role
-        update_user_meta( $user_id, 'wp_capabilities', array('customer' => true) );
-        
-          // link past orders to this newly created customer
-          wc_update_new_customer_past_orders( $user_id );
-        }        
-      }
       public function FIUPS_shortcode(){
         require_once FIUMS_PLUGIN_PATH . 'templates/custom-product-page.php';
       }
-      public function FIUMS_shortcode(){
-        require_once FIUMS_PLUGIN_PATH . 'templates/custom-checkout-page.php';
-      }
       public function add_custom_page_services(){
         require_once FIUMS_PLUGIN_PATH. 'inc/Page_creation.php';
+      }
+      public function FIUPS_extra_checkout_fields(){
+        $checkout = WC()->checkout();
+        echo '<div class="extra-fields">';
+            foreach ( $checkout->checkout_fields['_FIUPS_comp_email2'] as $key => $field ) :
+              woocommerce_form_field( $key, $field, $checkout->get_value( $key ) );
+            endforeach;
+        echo '</div>';      
+      }
+      public function FIUPS_save_extra_checkout_fields($order_id, $posted){
+        if (!empty($_POST)) { //The values have been posted
+            $elements = array();
+            foreach ($_POST as $key => $val) { //For every posted values
+                $frags = explode("1_", $key); //we separate the attribute name from the number
+                $id = $frags[1]; //That is the id
+                $attr = $frags[0]; //And that is the attribute name
+                if (!empty($val)) {
+                    //We then store the value of this attribute for this element.
+                    $elements[$id][$attr] = htmlentities($val);
+                }
+            }
+        }
+
+        update_post_meta( $order_id, '_FIUPS_comp_email2', $elements);
+
+      }
+      public function FIUPS_display_order_data_in_admin($order){
+        $order_id = $order->get_id();
+        echo '<h4>Company Info</h4>';
+        $array =  get_post_meta( $order_id, '_FIUPS_comp_email2', true );        
+        $length = count($array);
+          for ($i = 1; $i < $length; $i++) {
+                echo '</div><div class="order_data_column">';
+                echo '<div class="address">';
+                echo '<p><strong>' . __( 'Company Name' ) . ':</strong>' . $array[$i]['FIUPS_comp_name'] . '</p>';
+                echo '<p><strong>' . __( 'Company Registration' ) . ':</strong>' . $array[$i]['FIUPS_comp_reg'] . '</p>';
+                echo '<p><strong>' . __( 'Company Email' ) . ':</strong>' . $array[$i]['FIUPS_comp_email'] . '</p>'; 
+                echo '</div>';
+          }
+      }
+      public function FIUPS_save_extra_details( $post_id, $post ){
+          update_post_meta( $post_id, '_FIUPS_comp_email2', wc_clean( $_POST[ '_FIUPS_comp_email2' ] ) );
       }
       public function remove_custom_page_services(){
         global $wpdb;
